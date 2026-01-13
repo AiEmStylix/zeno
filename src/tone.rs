@@ -1,4 +1,4 @@
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Tone {
     None,
     Sac,
@@ -56,4 +56,40 @@ pub fn add_tone(c: char, tone: Tone) -> char {
         }
     }
     c
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn find_tone_basic() {
+        assert_eq!(find_tone('a'), Tone::None);
+        assert_eq!(find_tone('á'), Tone::Sac);
+        assert_eq!(find_tone('à'), Tone::Huyen);
+        assert_eq!(find_tone('ả'), Tone::Hoi);
+        assert_eq!(find_tone('ã'), Tone::Nga);
+        assert_eq!(find_tone('ạ'), Tone::Nang);
+    }
+
+    #[test]
+    fn add_tone_basic() {
+        assert_eq!(add_tone('a', Tone::None), 'a');
+        assert_eq!(add_tone('a', Tone::Sac), 'á');
+        assert_eq!(add_tone('a', Tone::Huyen), 'à');
+        assert_eq!(add_tone('a', Tone::Hoi), 'ả');
+        assert_eq!(add_tone('a', Tone::Nga), 'ã');
+        assert_eq!(add_tone('a', Tone::Nang), 'ạ');
+    }
+
+    #[test]
+    fn non_vowel_characters_are_unchanged() {
+        let chars = ['b', 'z', '1', ' ', '\n', '😀', '你'];
+
+        for c in chars {
+            assert_eq!(find_tone(c), Tone::None);
+            assert_eq!(add_tone(c, Tone::Sac), c);
+            assert_eq!(add_tone(c, Tone::Huyen), c);
+        }
+    }
 }
