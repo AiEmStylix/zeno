@@ -58,6 +58,16 @@ pub fn add_tone(c: char, tone: Tone) -> char {
     c
 }
 
+pub fn strip_tone(c: char) -> char {
+    for row in VOWELS {
+        if row.contains(c) {
+            let col = row.chars().position(|x| x == c).unwrap();
+            return VOWELS[0].chars().nth(col).unwrap();
+        }
+    }
+    c
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -80,6 +90,14 @@ mod tests {
         assert_eq!(add_tone('a', Tone::Hoi), 'ả');
         assert_eq!(add_tone('a', Tone::Nga), 'ã');
         assert_eq!(add_tone('a', Tone::Nang), 'ạ');
+    }
+
+    #[test]
+    fn strip_tone_basic() {
+        assert_eq!(strip_tone('a'), 'a');
+        assert_eq!(strip_tone('á'), 'a');
+        assert_eq!(strip_tone('ấ'), 'â');
+        assert_eq!(strip_tone('ằ'), 'ă');
     }
 
     #[test]
