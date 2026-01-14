@@ -127,4 +127,13 @@ mod tests {
             }
         }
     }
+
+    // Data Integrity test
+    #[test]
+    fn vowel_matrix_is_well_formed() {
+        let len = VOWELS[0].chars().count();
+        for row in VOWELS {
+            assert_eq!(row.chars().count(), len);
+        }
+    }
 }
