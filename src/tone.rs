@@ -12,7 +12,7 @@ pub enum Tone {
 // Matrix for vowels with tones
 const VOWELS: [&str; 6] = [
     "aăâeêioôơuưyAĂÂEÊIOÔƠUƯY",
-    "áắấeếíoốớúứýÁẮẤÉẾÍÓỐỚÚỨÝ",
+    "áắấéếíóốớúứýÁẮẤÉẾÍÓỐỚÚỨÝ",
     "àằầèềìòồờùừỳÀẰẦÈỀÌÒỒỜÙỪỲ",
     "ảẳẩẻểỉỏổởủửỷẢẲẨẺỂỈỎỔỞỦỬỶ",
     "ãẵẫẽễĩõỗỡũữỹÃẴẪẼỄĨÕỖỠŨỮỸ",
@@ -83,6 +83,14 @@ mod tests {
     }
 
     #[test]
+    fn uppercase_vowels_work() {
+        assert_eq!(find_tone('A'), Tone::None);
+        assert_eq!(find_tone('Á'), Tone::Sac);
+        assert_eq!(add_tone('A', Tone::Sac), 'Á');
+        assert_eq!(add_tone('Ê', Tone::Huyen), 'Ề');
+    }
+
+    #[test]
     fn non_vowel_characters_are_unchanged() {
         let chars = ['b', 'z', '1', ' ', '\n', '😀', '你'];
 
@@ -90,6 +98,33 @@ mod tests {
             assert_eq!(find_tone(c), Tone::None);
             assert_eq!(add_tone(c, Tone::Sac), c);
             assert_eq!(add_tone(c, Tone::Huyen), c);
+        }
+    }
+
+    #[test]
+    fn add_then_find_is_identity_for_all_vowels() {
+        let tones = [
+            Tone::None,
+            Tone::Sac,
+            Tone::Huyen,
+            Tone::Hoi,
+            Tone::Nga,
+            Tone::Nang,
+        ];
+
+        for row in VOWELS {
+            for c in row.chars() {
+                for tone in tones {
+                    let new_c = add_tone(c, tone);
+                    assert_eq!(
+                        find_tone(new_c),
+                        tone,
+                        "Failed for char {:?} with tone {:?}",
+                        c,
+                        tone
+                    );
+                }
+            }
         }
     }
 }
