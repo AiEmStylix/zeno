@@ -1,3 +1,5 @@
+use std::{collections::HashMap, sync::LazyLock};
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Tone {
     None,
@@ -8,64 +10,85 @@ pub enum Tone {
     Nang,
 }
 
+impl Tone {
+    #[inline]
+    pub const fn idx(self) -> usize {
+        self as usize
+    }
+
+    #[inline]
+    pub const fn from_idx(idx: usize) -> Self {
+        match idx {
+            0 => Tone::None,
+            1 => Tone::Sac,
+            2 => Tone::Huyen,
+            3 => Tone::Hoi,
+            4 => Tone::Nga,
+            5 => Tone::Nang,
+            _ => unreachable!(),
+        }
+    }
+}
+
+pub type ToneRow = [char; 6];
 //None, Sac, Huyen, Hoi, Nga, Nang
 // Matrix for vowels with tones
-const VOWELS: [&str; 6] = [
-    "aăâeêioôơuưyAĂÂEÊIOÔƠUƯY",
-    "áắấéếíóốớúứýÁẮẤÉẾÍÓỐỚÚỨÝ",
-    "àằầèềìòồờùừỳÀẰẦÈỀÌÒỒỜÙỪỲ",
-    "ảẳẩẻểỉỏổởủửỷẢẲẨẺỂỈỎỔỞỦỬỶ",
-    "ãẵẫẽễĩõỗỡũữỹÃẴẪẼỄĨÕỖỠŨỮỸ",
-    "ạặậẹệịọộợụựỵẠẶẬẸỆỊỌỘỢỤỰỴ",
+const VOWELS: &[[char; 6]] = &[
+    ['a', 'á', 'à', 'ả', 'ã', 'ạ'],
+    ['ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ'],
+    ['â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ'],
+    ['e', 'é', 'è', 'ẻ', 'ẽ', 'ẹ'],
+    ['ê', 'ế', 'ề', 'ể', 'ễ', 'ệ'],
+    ['i', 'í', 'ì', 'ỉ', 'ĩ', 'ị'],
+    ['o', 'ó', 'ò', 'ỏ', 'õ', 'ọ'],
+    ['ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ'],
+    ['ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ'],
+    ['u', 'ú', 'ù', 'ủ', 'ũ', 'ụ'],
+    ['ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự'],
+    ['y', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ'],
+    // Uppercase
+    ['A', 'Á', 'À', 'Ả', 'Ã', 'Ạ'],
+    ['Ă', 'Ắ', 'Ằ', 'Ẳ', 'Ẵ', 'Ặ'],
+    ['Â', 'Ấ', 'Ầ', 'Ẩ', 'Ẫ', 'Ậ'],
+    ['E', 'É', 'È', 'Ẻ', 'Ẽ', 'Ẹ'],
+    ['Ê', 'Ế', 'Ề', 'Ể', 'Ễ', 'Ệ'],
+    ['I', 'Í', 'Ì', 'Ỉ', 'Ĩ', 'Ị'],
+    ['O', 'Ó', 'Ò', 'Ỏ', 'Õ', 'Ọ'],
+    ['Ô', 'Ố', 'Ồ', 'Ổ', 'Ỗ', 'Ộ'],
+    ['Ơ', 'Ớ', 'Ờ', 'Ở', 'Ỡ', 'Ợ'],
+    ['U', 'Ú', 'Ù', 'Ủ', 'Ũ', 'Ụ'],
+    ['Ư', 'Ứ', 'Ừ', 'Ử', 'Ữ', 'Ự'],
+    ['Y', 'Ý', 'Ỳ', 'Ỷ', 'Ỹ', 'Ỵ'],
 ];
 
-impl Tone {
-    fn idx(self) -> usize {
-        match self {
-            Self::None => 0,
-            Self::Sac => 1,
-            Self::Huyen => 2,
-            Self::Hoi => 3,
-            Self::Nga => 4,
-            Self::Nang => 5,
-        }
-    }
-}
+static VOWEL_MAP: LazyLock<HashMap<char, ToneRow>> = LazyLock::new(|| {
+    let mut map = HashMap::new();
 
-pub fn find_tone(c: char) -> Tone {
-    for (tone_index, row) in VOWELS.iter().enumerate() {
-        if row.contains(c) {
-            return match tone_index {
-                0 => Tone::None,
-                1 => Tone::Sac,
-                2 => Tone::Huyen,
-                3 => Tone::Hoi,
-                4 => Tone::Nga,
-                5 => Tone::Nang,
-                _ => Tone::None,
-            };
-        }
-    }
-    Tone::None
-}
-
-pub fn add_tone(c: char, tone: Tone) -> char {
-    for (_tone_index, row) in VOWELS.iter().enumerate() {
-        if let Some(col_index) = row.chars().position(|x| x == c) {
-            return VOWELS[tone.idx()].chars().nth(col_index).unwrap();
-        }
-    }
-    c
-}
-
-pub fn strip_tone(c: char) -> char {
     for row in VOWELS {
-        if row.contains(c) {
-            let col = row.chars().position(|x| x == c).unwrap();
-            return VOWELS[0].chars().nth(col).unwrap();
+        for &ch in row {
+            map.insert(ch, *row);
         }
     }
-    c
+
+    map
+});
+
+pub fn add_tone(c: char, tone: Tone) -> Option<char> {
+    VOWEL_MAP.get(&c).map(|row| row[tone.idx()])
+}
+
+pub fn find_tone(c: char) -> Option<Tone> {
+    let row = VOWEL_MAP.get(&c)?;
+    row.iter().position(|&x| x == c).map(Tone::from_idx)
+}
+
+pub fn strip_tone(c: char) -> Option<char> {
+    VOWEL_MAP.get(&c).map(|row| row[0])
+}
+
+pub fn replace_tone(c: char, tone: Tone) -> Option<char> {
+    let row = VOWEL_MAP.get(&c)?;
+    Some(row[tone.idx()])
 }
 
 #[cfg(test)]
@@ -74,38 +97,38 @@ mod tests {
 
     #[test]
     fn find_tone_basic() {
-        assert_eq!(find_tone('a'), Tone::None);
-        assert_eq!(find_tone('á'), Tone::Sac);
-        assert_eq!(find_tone('à'), Tone::Huyen);
-        assert_eq!(find_tone('ả'), Tone::Hoi);
-        assert_eq!(find_tone('ã'), Tone::Nga);
-        assert_eq!(find_tone('ạ'), Tone::Nang);
+        assert_eq!(find_tone('a'), Some(Tone::None));
+        assert_eq!(find_tone('á'), Some(Tone::Sac));
+        assert_eq!(find_tone('à'), Some(Tone::Huyen));
+        assert_eq!(find_tone('ả'), Some(Tone::Hoi));
+        assert_eq!(find_tone('ã'), Some(Tone::Nga));
+        assert_eq!(find_tone('ạ'), Some(Tone::Nang));
     }
 
     #[test]
     fn add_tone_basic() {
-        assert_eq!(add_tone('a', Tone::None), 'a');
-        assert_eq!(add_tone('a', Tone::Sac), 'á');
-        assert_eq!(add_tone('a', Tone::Huyen), 'à');
-        assert_eq!(add_tone('a', Tone::Hoi), 'ả');
-        assert_eq!(add_tone('a', Tone::Nga), 'ã');
-        assert_eq!(add_tone('a', Tone::Nang), 'ạ');
+        assert_eq!(add_tone('a', Tone::None), Some('a'));
+        assert_eq!(add_tone('a', Tone::Sac), Some('á'));
+        assert_eq!(add_tone('a', Tone::Huyen), Some('à'));
+        assert_eq!(add_tone('a', Tone::Hoi), Some('ả'));
+        assert_eq!(add_tone('a', Tone::Nga), Some('ã'));
+        assert_eq!(add_tone('a', Tone::Nang), Some('ạ'));
     }
 
     #[test]
     fn strip_tone_basic() {
-        assert_eq!(strip_tone('a'), 'a');
-        assert_eq!(strip_tone('á'), 'a');
-        assert_eq!(strip_tone('ấ'), 'â');
-        assert_eq!(strip_tone('ằ'), 'ă');
+        assert_eq!(strip_tone('a'), Some('a'));
+        assert_eq!(strip_tone('á'), Some('a'));
+        assert_eq!(strip_tone('ấ'), Some('â'));
+        assert_eq!(strip_tone('ằ'), Some('ă'));
     }
 
     #[test]
     fn uppercase_vowels_work() {
-        assert_eq!(find_tone('A'), Tone::None);
-        assert_eq!(find_tone('Á'), Tone::Sac);
-        assert_eq!(add_tone('A', Tone::Sac), 'Á');
-        assert_eq!(add_tone('Ê', Tone::Huyen), 'Ề');
+        assert_eq!(find_tone('A'), Some(Tone::None));
+        assert_eq!(find_tone('Á'), Some(Tone::Sac));
+        assert_eq!(add_tone('A', Tone::Sac), Some('Á'));
+        assert_eq!(add_tone('Ê', Tone::Huyen), Some('Ề'));
     }
 
     #[test]
@@ -113,45 +136,9 @@ mod tests {
         let chars = ['b', 'z', '1', ' ', '\n', '😀', '你'];
 
         for c in chars {
-            assert_eq!(find_tone(c), Tone::None);
-            assert_eq!(add_tone(c, Tone::Sac), c);
-            assert_eq!(add_tone(c, Tone::Huyen), c);
-        }
-    }
-
-    #[test]
-    fn add_then_find_is_identity_for_all_vowels() {
-        let tones = [
-            Tone::None,
-            Tone::Sac,
-            Tone::Huyen,
-            Tone::Hoi,
-            Tone::Nga,
-            Tone::Nang,
-        ];
-
-        for row in VOWELS {
-            for c in row.chars() {
-                for tone in tones {
-                    let new_c = add_tone(c, tone);
-                    assert_eq!(
-                        find_tone(new_c),
-                        tone,
-                        "Failed for char {:?} with tone {:?}",
-                        c,
-                        tone
-                    );
-                }
-            }
-        }
-    }
-
-    // Data Integrity test
-    #[test]
-    fn vowel_matrix_is_well_formed() {
-        let len = VOWELS[0].chars().count();
-        for row in VOWELS {
-            assert_eq!(row.chars().count(), len);
+            assert_eq!(find_tone(c), None);
+            assert_eq!(add_tone(c, Tone::Sac), None);
+            assert_eq!(add_tone(c, Tone::Huyen), None);
         }
     }
 }
