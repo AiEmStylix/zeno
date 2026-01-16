@@ -44,5 +44,12 @@ mod tests {
     fn basic_add_mark() {
         assert_eq!(add_mark('a', Mark::Mu), Some('â'));
         assert_eq!(add_mark('a', Mark::Trang), Some('ă'));
+        assert_eq!(add_mark('e', Mark::Mu), Some('ê'));
+        assert_eq!(add_mark('o', Mark::Mu), Some('ô'));
+        assert_eq!(add_mark('o', Mark::Moc), Some('ơ'));
+        assert_eq!(add_mark('u', Mark::Moc), Some('ư'));
+        assert_eq!(add_mark('d', Mark::Gach), Some('đ'));
     }
+    
+    
 }
