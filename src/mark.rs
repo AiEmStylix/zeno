@@ -50,6 +50,15 @@ mod tests {
         assert_eq!(add_mark('u', Mark::Moc), Some('ư'));
         assert_eq!(add_mark('d', Mark::Gach), Some('đ'));
     }
-    
-    
+
+    #[test]
+    fn basic_strip_mark() {
+        assert_eq!(strip_mark('â'), Some('a'));
+        assert_eq!(strip_mark('ă'), Some('a'));
+        assert_eq!(strip_mark('ê'), Some('e'));
+        assert_eq!(strip_mark('ô'), Some('o'));
+        assert_eq!(strip_mark('ơ'), Some('o'));
+        assert_eq!(strip_mark('ư'), Some('u'));
+        assert_eq!(strip_mark('đ'), Some('d'));
+    }
 }
